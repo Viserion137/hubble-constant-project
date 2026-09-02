@@ -1,5 +1,7 @@
 # Estimating the Hubble Constant: From Historical to Modern Data
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22260281.svg)](https://doi.org/10.5281/zenodo.22260281)
+
 Independent research project by Alessandro Buttazzo (2026).
 
 This repository reproduces Edwin Hubble's original 1929 measurement of the
@@ -63,6 +65,6 @@ regenerates the four PNG figures in `figures/`.
 
 ## Citation
 
-If you use this code or data, please cite this repository by its GitHub URL
-and the original data sources listed above. A permanent, versioned DOI via
-Zenodo will be added here once available.
+If you use this code or data, please cite this repository via its permanent
+DOI: [10.5281/zenodo.22260281](https://doi.org/10.5281/zenodo.22260281), in
+addition to the original data sources listed above.
