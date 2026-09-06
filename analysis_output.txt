@@ -1,4 +1,4 @@
-/home/claude/hubble_project/analysis.py:13: DeprecationWarning: `scipy.odr` is deprecated as of version 1.17.0 and will be removed in SciPy 1.19.0. Please use `https://pypi.org/project/odrpack/` instead.
+analysis.py:13: DeprecationWarning: `scipy.odr` is deprecated as of version 1.17.0 and will be removed in SciPy 1.19.0. Please use `https://pypi.org/project/odrpack/` instead.
   from scipy.odr import ODR, Model, RealData
 ======================================================================
 PART 1: Hubble (1929) data
@@ -74,16 +74,22 @@ Adopted fractional distance errors: {'Cepheids': 0.07, 'SBF': 0.1, 'SNIa': 0.08,
  adopted as a representative order-of-magnitude, not a per-galaxy measurement)
 
   sigma_pec = 150 km/s:
-    v_helio: H0 = 72.83 +/- 3.27 km/s/Mpc (R2=0.9584, chi2/dof=4.94)
-    v_CMB: H0 = 78.92 +/- 4.75 km/s/Mpc (R2=0.9173, chi2/dof=9.46)
+    v_helio: forced-origin  H0 = 72.83 +/- 3.27 km/s/Mpc (R2=0.9584, chi2/dof=4.94)
+    v_helio: free-intercept H0 = 67.07 +/- 4.17 km/s/Mpc (b=+165.0, R2=0.9591, chi2/dof=4.79)
+    v_CMB: forced-origin  H0 = 78.92 +/- 4.75 km/s/Mpc (R2=0.9173, chi2/dof=9.46)
+    v_CMB: free-intercept H0 = 65.15 +/- 5.30 km/s/Mpc (b=+374.5, R2=0.9377, chi2/dof=8.06)
 
   sigma_pec = 200 km/s:
-    v_helio: H0 = 71.96 +/- 2.90 km/s/Mpc (R2=0.9587, chi2/dof=3.14)
-    v_CMB: H0 = 76.57 +/- 4.19 km/s/Mpc (R2=0.9241, chi2/dof=6.09)
+    v_helio: forced-origin  H0 = 71.96 +/- 2.90 km/s/Mpc (R2=0.9587, chi2/dof=3.14)
+    v_helio: free-intercept H0 = 67.31 +/- 3.62 km/s/Mpc (b=+158.1, R2=0.9594, chi2/dof=3.01)
+    v_CMB: forced-origin  H0 = 76.57 +/- 4.19 km/s/Mpc (R2=0.9241, chi2/dof=6.09)
+    v_CMB: free-intercept H0 = 65.42 +/- 4.58 km/s/Mpc (b=+364.9, R2=0.9380, chi2/dof=5.02)
 
   sigma_pec = 300 km/s:
-    v_helio: H0 = 71.18 +/- 2.45 km/s/Mpc (R2=0.9586, chi2/dof=1.58)
-    v_CMB: H0 = 74.26 +/- 3.49 km/s/Mpc (R2=0.9273, chi2/dof=3.07)
+    v_helio: forced-origin  H0 = 71.18 +/- 2.45 km/s/Mpc (R2=0.9586, chi2/dof=1.58)
+    v_helio: free-intercept H0 = 67.72 +/- 2.99 km/s/Mpc (b=+149.1, R2=0.9597, chi2/dof=1.51)
+    v_CMB: forced-origin  H0 = 74.26 +/- 3.49 km/s/Mpc (R2=0.9273, chi2/dof=3.07)
+    v_CMB: free-intercept H0 = 65.92 +/- 3.78 km/s/Mpc (b=+351.0, R2=0.9386, chi2/dof=2.48)
 
 Adopted sigma_pec = 200 km/s, results used in the report:
   v_helio: weighted H0 = 71.96 +/- 2.90  (unweighted was 71.74 +/- 1.86)

@@ -258,9 +258,10 @@ for sigma_pec_test in (150.0, 200.0, 300.0):
     print(f"\n  sigma_pec = {sigma_pec_test:.0f} km/s:")
     for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
         H0o_w, se_o_w, r2_o_w, chi2dof_o = irls_origin(r_m, v, frac_err, sigma_pec=sigma_pec_test)
-        print(f"    {label}: H0 = {H0o_w:5.2f} +/- {se_o_w:4.2f} km/s/Mpc (R2={r2_o_w:.4f}, chi2/dof={chi2dof_o:.2f})")
+        H0f_w, se_f_w, b_f_w, r2_f_w, chi2dof_f = irls_free(r_m, v, frac_err, sigma_pec=sigma_pec_test)
+        print(f"    {label}: forced-origin  H0 = {H0o_w:5.2f} +/- {se_o_w:4.2f} km/s/Mpc (R2={r2_o_w:.4f}, chi2/dof={chi2dof_o:.2f})")
+        print(f"    {label}: free-intercept H0 = {H0f_w:5.2f} +/- {se_f_w:4.2f} km/s/Mpc (b={b_f_w:+.1f}, R2={r2_f_w:.4f}, chi2/dof={chi2dof_f:.2f})")
         if sigma_pec_test == 200.0:
-            H0f_w, se_f_w, b_f_w, r2_f_w, chi2dof_f = irls_free(r_m, v, frac_err, sigma_pec=sigma_pec_test)
             weighted_results[label] = dict(H0f=H0f_w, se_f=se_f_w, b_f=b_f_w, r2_f=r2_f_w, chi2dof_f=chi2dof_f,
                                             H0o=H0o_w, se_o=se_o_w, r2_o=r2_o_w, chi2dof_o=chi2dof_o)
 

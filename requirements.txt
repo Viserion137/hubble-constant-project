@@ -1,0 +1,6 @@
+# Exact versions verified to reproduce the numbers in hubble_report.pdf
+# and analysis_output.txt (checked September 2026).
+numpy==2.4.4
+pandas==3.0.2
+matplotlib==3.10.9
+scipy==1.17.1
