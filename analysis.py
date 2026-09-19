@@ -1,11 +1,17 @@
 """
 Analysis script for the Hubble constant project.
-- Reproduces the fits quoted in the report (sanity check)
-- Adds standard errors and R^2 for each fit
-- Runs a jackknife sensitivity check on the modern sample, focused on the
-  5 Megamaser Cosmology Project (MCP) galaxies, to quantify their leverage
+- Reproduces every fit quoted in the report, with standard errors and R^2
+  (Hubble 1929 sample and modern NED sample, free-intercept and
+  origin-forced fits, heliocentric and CMB-frame velocities).
+- Repeats the modern fits on the nearby subsample alone (r <= 25 Mpc) to
+  show how the heliocentric/CMB-frame discrepancy depends on distance.
+- Runs jackknife and bootstrap sensitivity checks on the modern sample,
+  focused on the 5 galaxies with geometric maser distances (NGC 4258 plus
+  four Megamaser Cosmology Project galaxies), to quantify their leverage
   on the origin-forced fit.
-- Regenerates the three figures used in the report.
+- Runs an inverse-variance weighted fit (method-level distance errors plus
+  a peculiar-velocity floor) and an orthogonal distance regression check.
+- Regenerates the four figures used in the report.
 """
 import numpy as np
 import pandas as pd
@@ -187,11 +193,12 @@ for label, mask in [("Full sample (24)", np.ones(len(df29), dtype=bool)),
 
 # ---------- Part 2: modern NED sample ----------
 print()
+dfm = pd.read_csv("ned_modern.csv")
+N_MODERN = len(dfm)
 print("=" * 70)
-print("PART 2: Modern NED sample (n=37)")
+print(f"PART 2: Modern NED sample (n={N_MODERN})")
 print("=" * 70)
 
-dfm = pd.read_csv("ned_modern.csv")
 r_m = dfm.r_Mpc.values
 v_helio = dfm.v_helio_kms.values
 v_cmb = dfm.v_cmb_kms.values
@@ -208,10 +215,41 @@ for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
     print(f"  Free intercept:      H0 = {H0f:5.2f} +/- {se_f:4.2f} km/s/Mpc  (b={b_f:+.1f}, R2={r2_f:.4f})")
     print(f"  Forced thru origin:  H0 = {H0o:5.2f} +/- {se_o:4.2f} km/s/Mpc  (R2={r2_o:.4f})")
 
-# ---------- Sensitivity to the 5 MCP maser galaxies ----------
+# ---------- Nearby subsample only (r <= 25 Mpc) ----------
+# Same fits, restricted to the galaxies within 25 Mpc (no galaxy lies between
+# 24.1 and 29.7 Mpc, so any cut in that range selects the same objects).
+# This shows how strongly the heliocentric -> CMB frame change moves H0 when
+# the sample does not reach into the Hubble flow, compared with the full sample.
+R_CUT = 25.0
+near = r_m <= R_CUT
 print()
 print("=" * 70)
-print("SENSITIVITY CHECK: influence of the 5 Megamaser (MCP) galaxies")
+print(f"NEARBY SUBSAMPLE: r <= {R_CUT:.0f} Mpc (n={near.sum()}) vs. full sample (n={N_MODERN})")
+print("=" * 70)
+near_results = {}
+for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
+    H0f, se_f, b_f, r2_f = fit_free(r_m[near], v[near])
+    H0o, se_o, r2_o = fit_origin(r_m[near], v[near])
+    near_results[label] = dict(H0f=H0f, se_f=se_f, H0o=H0o, se_o=se_o)
+    print(f"\n{label}, r <= {R_CUT:.0f} Mpc")
+    print(f"  Free intercept:      H0 = {H0f:5.2f} +/- {se_f:4.2f} km/s/Mpc  (b={b_f:+.1f}, R2={r2_f:.4f})")
+    print(f"  Forced thru origin:  H0 = {H0o:5.2f} +/- {se_o:4.2f} km/s/Mpc  (R2={r2_o:.4f})")
+
+print("\nFrame shift, H0(v_CMB) - H0(v_helio):")
+for name, res in [(f"r <= {R_CUT:.0f} Mpc (n={near.sum()})", near_results),
+                  (f"Full sample   (n={N_MODERN})", results)]:
+    d_free = res["v_CMB"]["H0f"] - res["v_helio"]["H0f"]
+    d_orig = res["v_CMB"]["H0o"] - res["v_helio"]["H0o"]
+    print(f"  {name}: free intercept {d_free:+6.2f}, forced thru origin {d_orig:+6.2f} km/s/Mpc")
+
+# ---------- Sensitivity to the 5 maser-distance galaxies ----------
+# NGC 4258 (the geometric anchor of the distance ladder) plus the four
+# Megamaser Cosmology Project galaxies with maser distances in this sample.
+# CGCG 074-064 is also an MCP galaxy, but here it has a Fundamental Plane
+# distance, so it is not in this group.
+print()
+print("=" * 70)
+print(f"SENSITIVITY CHECK: influence of the {is_maser.sum()} maser-distance galaxies")
 print("=" * 70)
 
 for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
@@ -219,8 +257,8 @@ for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
     H0_nomaser, se_nomaser, r2_nomaser = fit_origin(r_m[~is_maser], v[~is_maser])
     shift = H0_all - H0_nomaser
     print(f"\n{label} (origin-forced fit):")
-    print(f"  Full sample (n=37):        H0 = {H0_all:5.2f} +/- {se_all:4.2f} km/s/Mpc")
-    print(f"  Excluding 5 masers (n=32): H0 = {H0_nomaser:5.2f} +/- {se_nomaser:4.2f} km/s/Mpc")
+    print(f"  Full sample (n={N_MODERN}):        H0 = {H0_all:5.2f} +/- {se_all:4.2f} km/s/Mpc")
+    print(f"  Excluding {is_maser.sum()} masers (n={(~is_maser).sum()}): H0 = {H0_nomaser:5.2f} +/- {se_nomaser:4.2f} km/s/Mpc")
     print(f"  Shift from removing masers: {shift:+.2f} km/s/Mpc")
 
     jk = jackknife_origin(r_m, v)
@@ -302,7 +340,7 @@ print()
 print("=" * 70)
 print("M31 (Andromeda) modern velocity check")
 print("=" * 70)
-print("Value quoted in report: v_helio(M31) ~= -297 km/s (not in the n=37 table; NED modern measurement).")
+print(f"Value quoted in report: v_helio(M31) ~= -297 km/s (not in the n={N_MODERN} table; NED modern measurement).")
 
 # ---------- Figures ----------
 print()
