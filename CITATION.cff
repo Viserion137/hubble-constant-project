@@ -4,9 +4,9 @@ title: "Estimating the Hubble Constant: From Historical to Modern Data"
 authors:
   - family-names: Buttazzo
     given-names: Alessandro
-version: v1.0.1
-date-released: 2026-09-02
-doi: 10.5281/zenodo.22260281
+version: v1.1.0
+date-released: 2026-09-19
+doi: 10.5281/zenodo.22260280
 repository-code: "https://github.com/Viserion137/hubble-constant-project"
 license: MIT
 type: software
