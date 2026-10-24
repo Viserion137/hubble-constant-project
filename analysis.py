@@ -6,11 +6,18 @@ Analysis script for the Hubble constant project.
 - Repeats the modern fits on the nearby subsample alone (r <= 25 Mpc) to
   show how the heliocentric/CMB-frame discrepancy depends on distance.
 - Runs jackknife and bootstrap sensitivity checks on the modern sample,
-  focused on the 5 galaxies with geometric maser distances (NGC 4258 plus
-  four Megamaser Cosmology Project galaxies), to quantify their leverage
-  on the origin-forced fit.
+  focused on the 6 galaxies with geometric maser distances (NGC 4258 plus
+  five Megamaser Cosmology Project galaxies), to quantify their leverage
+  on the origin-forced fit, and reports the jackknife and bootstrap
+  standard errors next to the analytic one.
 - Runs an inverse-variance weighted fit (method-level distance errors plus
   a peculiar-velocity floor) and an orthogonal distance regression check.
+- Compares the spread between the ten H0 estimators with their own
+  sampling noise (paired bootstrap: every estimator recomputed on the same
+  resamples).
+- Validates the weighted-fit method against the published Megamaser
+  Cosmology Project result (Pesce et al. 2020, ApJL 891, L1), using their
+  six distances and velocities (mcp_pesce2020.csv).
 - Regenerates the four figures used in the report.
 """
 import numpy as np
@@ -85,8 +92,15 @@ METHOD_FRAC_ERROR = {
     "SNIa": 0.08,
     "SNII (optical)": 0.15,
     "Maser": 0.05,
-    "FP": 0.20,
 }
+
+# Peculiar-velocity floor adopted for the weighted fit and the ODR check, and
+# a representative measurement error on the redshift-based velocities
+# themselves (NED quotes a few km/s for these galaxies). Only these two terms
+# belong in the velocity error of the ODR: the distance error enters the ODR
+# separately, through sigma_r.
+SIGMA_PEC = 200.0
+SIGMA_V_MEAS = 5.0
 
 
 def fit_origin_weighted(r, v, w):
@@ -242,11 +256,10 @@ for name, res in [(f"r <= {R_CUT:.0f} Mpc (n={near.sum()})", near_results),
     d_orig = res["v_CMB"]["H0o"] - res["v_helio"]["H0o"]
     print(f"  {name}: free intercept {d_free:+6.2f}, forced thru origin {d_orig:+6.2f} km/s/Mpc")
 
-# ---------- Sensitivity to the 5 maser-distance galaxies ----------
-# NGC 4258 (the geometric anchor of the distance ladder) plus the four
-# Megamaser Cosmology Project galaxies with maser distances in this sample.
-# CGCG 074-064 is also an MCP galaxy, but here it has a Fundamental Plane
-# distance, so it is not in this group.
+# ---------- Sensitivity to the 6 maser-distance galaxies ----------
+# NGC 4258 (the geometric anchor of the distance ladder, Reid et al. 2019)
+# plus the five Megamaser Cosmology Project galaxies, all with the distances
+# adopted in Pesce et al. (2020).
 print()
 print("=" * 70)
 print(f"SENSITIVITY CHECK: influence of the {is_maser.sum()} maser-distance galaxies")
@@ -269,9 +282,14 @@ for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
     for i in order:
         print(f"    {dfm.object.iloc[i]:15s} ({dfm.method.iloc[i]:>8s}, r={dfm.r_Mpc.iloc[i]:6.1f} Mpc): {shifts_1[i]:+.2f} km/s/Mpc")
 
+    n_jk = len(jk)
+    se_jk = np.sqrt((n_jk - 1) / n_jk * np.sum((jk - jk.mean()) ** 2))
+
     boot = bootstrap_origin(r_m, v)
     lo, hi = np.percentile(boot, [16, 84])
     print(f"  Bootstrap 68% CI (percentile): [{lo:.2f}, {hi:.2f}] km/s/Mpc (median {np.median(boot):.2f})")
+    print(f"  Standard error on H0: analytic {se_all:.2f}, jackknife {se_jk:.2f}, "
+          f"bootstrap SD {boot.std(ddof=1):.2f} km/s/Mpc")
 
 # ---------- Weighted fit (inverse-variance, by representative method-level errors) ----------
 print()
@@ -299,11 +317,11 @@ for sigma_pec_test in (150.0, 200.0, 300.0):
         H0f_w, se_f_w, b_f_w, r2_f_w, chi2dof_f = irls_free(r_m, v, frac_err, sigma_pec=sigma_pec_test)
         print(f"    {label}: forced-origin  H0 = {H0o_w:5.2f} +/- {se_o_w:4.2f} km/s/Mpc (R2={r2_o_w:.4f}, chi2/dof={chi2dof_o:.2f})")
         print(f"    {label}: free-intercept H0 = {H0f_w:5.2f} +/- {se_f_w:4.2f} km/s/Mpc (b={b_f_w:+.1f}, R2={r2_f_w:.4f}, chi2/dof={chi2dof_f:.2f})")
-        if sigma_pec_test == 200.0:
+        if sigma_pec_test == SIGMA_PEC:
             weighted_results[label] = dict(H0f=H0f_w, se_f=se_f_w, b_f=b_f_w, r2_f=r2_f_w, chi2dof_f=chi2dof_f,
                                             H0o=H0o_w, se_o=se_o_w, r2_o=r2_o_w, chi2dof_o=chi2dof_o)
 
-print("\nAdopted sigma_pec = 200 km/s, results used in the report:")
+print(f"\nAdopted sigma_pec = {SIGMA_PEC:.0f} km/s, results used in the report:")
 for label in ("v_helio", "v_CMB"):
     wr = weighted_results[label]
     unw = results[label]
@@ -315,18 +333,25 @@ print()
 print("=" * 70)
 print("ODR CHECK: accounting for errors on r AND v simultaneously")
 print("=" * 70)
-print("(sigma_r = f_method * r; sigma_v = sqrt((H0*f_method*r)^2 + sigma_pec^2), sigma_pec=200 km/s)")
+print(f"(sigma_r = f_method * r; sigma_v = sqrt(sigma_pec^2 + sigma_meas^2), "
+      f"sigma_pec={SIGMA_PEC:.0f} km/s, sigma_meas={SIGMA_V_MEAS:.0f} km/s)")
+print("(the distance error enters only through sigma_r: ODR already propagates it")
+print(" onto v, so it must not be repeated in sigma_v)")
 
 odr_results = {}
 for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
-    H0_ref = weighted_results[label]["H0o"]
     sigma_r = frac_err * r_m
-    sigma_v = np.sqrt((H0_ref * frac_err * r_m) ** 2 + 200.0 ** 2)
+    sigma_v = np.full_like(r_m, np.hypot(SIGMA_PEC, SIGMA_V_MEAS), dtype=float)
     H0_odr, se_odr = odr_origin(r_m, v, sigma_r, sigma_v)
     odr_results[label] = dict(H0=H0_odr, se=se_odr)
     wls_H0, wls_se = weighted_results[label]["H0o"], weighted_results[label]["se_o"]
     print(f"  {label}: ODR H0 = {H0_odr:5.2f} +/- {se_odr:4.2f} km/s/Mpc  "
           f"(weighted OLS was {wls_H0:.2f} +/- {wls_se:.2f})")
+    # For transparency: the v1.1.0 version of this check also put the distance
+    # term H0*f*r into sigma_v, counting the distance error twice.
+    sigma_v_old = np.sqrt((wls_H0 * frac_err * r_m) ** 2 + SIGMA_PEC ** 2)
+    H0_odr_old, _ = odr_origin(r_m, v, sigma_r, sigma_v_old)
+    print(f"  {label}: (with the v1.1.0 double-counted sigma_v it would be {H0_odr_old:5.2f})")
 
 # Residuals by method (checking for a method-dependent systematic offset)
 print("\nResiduals from the unweighted v_helio origin-forced fit, grouped by method:")
@@ -334,6 +359,124 @@ H0o_ref, _, _ = fit_origin(r_m, v_helio)
 dfm["resid_helio"] = v_helio - H0o_ref * r_m
 dfm["frac_resid_helio"] = dfm["resid_helio"] / (H0o_ref * r_m)
 print(dfm.groupby("method")["frac_resid_helio"].agg(["mean", "std", "count"]).to_string())
+
+# ---------- Method dependence vs. sampling noise (paired bootstrap) ----------
+# The ten estimators above (2 frames x {OLS origin, OLS free, weighted origin,
+# weighted free, ODR}) are all computed on the same 39 galaxies, so their
+# differences are not independent of sampling noise. Here every estimator is
+# recomputed on the SAME bootstrap resamples, which gives the noise of each
+# estimator and of each difference between estimators.
+print()
+print("=" * 70)
+print("METHOD DEPENDENCE vs. SAMPLING NOISE (paired bootstrap)")
+print("=" * 70)
+
+sigma_v_odr_const = np.hypot(SIGMA_PEC, SIGMA_V_MEAS)
+
+
+def all_estimators(r, v_h, v_c, f):
+    out = {}
+    for fr, v in (("v_helio", v_h), ("v_CMB", v_c)):
+        out[f"{fr} OLS origin"] = fit_origin(r, v)[0]
+        out[f"{fr} OLS free"] = fit_free(r, v)[0]
+        out[f"{fr} weighted origin"] = irls_origin(r, v, f, sigma_pec=SIGMA_PEC)[0]
+        out[f"{fr} weighted free"] = irls_free(r, v, f, sigma_pec=SIGMA_PEC)[0]
+        out[f"{fr} ODR"] = odr_origin(r, v, f * r,
+                                      np.full_like(r, sigma_v_odr_const, dtype=float))[0]
+    return out
+
+
+est_obs = all_estimators(r_m, v_helio, v_cmb, frac_err)
+est_names = list(est_obs)
+est_se = {}
+for label in ("v_helio", "v_CMB"):
+    est_se[f"{label} OLS origin"] = results[label]["se_o"]
+    est_se[f"{label} OLS free"] = results[label]["se_f"]
+    est_se[f"{label} weighted origin"] = weighted_results[label]["se_o"]
+    est_se[f"{label} weighted free"] = weighted_results[label]["se_f"]
+    est_se[f"{label} ODR"] = odr_results[label]["se"]
+
+N_BOOT_PAIRED = 4000
+rng_paired = np.random.default_rng(2026)
+n_m = len(r_m)
+boot_est = np.full((N_BOOT_PAIRED, len(est_names)), np.nan)
+for b in range(N_BOOT_PAIRED):
+    s = rng_paired.integers(0, n_m, n_m)
+    try:
+        e = all_estimators(r_m[s], v_helio[s], v_cmb[s], frac_err[s])
+        boot_est[b] = [e[k] for k in est_names]
+    except Exception:
+        pass
+valid = ~np.isnan(boot_est).any(axis=1)
+boot_est = boot_est[valid]
+print(f"{valid.sum()} valid resamples out of {N_BOOT_PAIRED}\n")
+print(f"  {'estimator':24s} {'H0':>6s} {'SE analytic':>11s} {'SD boot':>8s}   68% CI (bootstrap)")
+for j, k in enumerate(est_names):
+    lo, hi = np.percentile(boot_est[:, j], [16, 84])
+    print(f"  {k:24s} {est_obs[k]:6.2f} {est_se[k]:11.2f} {boot_est[:, j].std(ddof=1):8.2f}   [{lo:.2f}, {hi:.2f}]")
+
+ref_name = "v_helio OLS origin"
+j_ref = est_names.index(ref_name)
+print(f"\n  Shift of each estimator from the reference ({ref_name}),")
+print("  compared with the bootstrap SD of that same difference:")
+print(f"  {'estimator':24s} {'shift':>7s} {'SD(shift)':>9s} {'shift/SD':>8s}")
+ratios = []
+for j, k in enumerate(est_names):
+    if j == j_ref:
+        continue
+    shift = est_obs[k] - est_obs[ref_name]
+    sd_shift = (boot_est[:, j] - boot_est[:, j_ref]).std(ddof=1)
+    ratios.append(abs(shift / sd_shift))
+    print(f"  {k:24s} {shift:+7.2f} {sd_shift:9.2f} {shift / sd_shift:+8.1f}")
+print(f"  Largest |shift|/SD: {max(ratios):.1f}")
+
+vals = np.array([est_obs[k] for k in est_names])
+print(f"\n  Spread of the ten estimates: SD {vals.std(ddof=1):.2f}, "
+      f"range {vals.min():.2f}-{vals.max():.2f} km/s/Mpc")
+for label in ("v_helio", "v_CMB"):
+    v5 = np.array([est_obs[k] for k in est_names if k.startswith(label + " ")])
+    print(f"  {label} only (5 estimators): SD {v5.std(ddof=1):.2f}, "
+          f"range {v5.min():.2f}-{v5.max():.2f} km/s/Mpc")
+
+# Distance of each estimator from the literature values, in units of the
+# combined uncertainty (bootstrap SD of the estimator and quoted error of the
+# literature value, in quadrature). Statistical error only: the dependence of
+# the estimate on the choice of estimator is shown by the spread across rows.
+LITERATURE = [
+    ("Planck 2020", 67.4, 0.5),
+    ("CCHP 2025", 70.39, np.sqrt(1.22**2 + 1.33**2 + 0.70**2)),
+    ("SH0ES 2022", 73.3, 1.0),
+]
+print("\n  Distance from literature values, (H0 - H0_lit) / sqrt(SD_boot^2 + sigma_lit^2):")
+print(f"  {'estimator':24s}" + "".join(f" {name:>12s}" for name, _, _ in LITERATURE))
+for j, k in enumerate(est_names):
+    sd = boot_est[:, j].std(ddof=1)
+    row = "".join(f" {(est_obs[k] - val) / np.hypot(sd, err):+11.1f}s" for _, val, err in LITERATURE)
+    print(f"  {k:24s}{row}")
+
+# ---------- Validation against the published MCP result ----------
+# The weighted origin-forced fit used above (method-level errors replaced
+# here by each galaxy's published distance error, symmetrized, and the
+# peculiar-velocity floor set to the 250 km/s used by Pesce et al. 2020)
+# is applied to the six MCP galaxies with the distances and CMB-frame
+# velocities from Table 1 of Pesce et al. (2020), and compared with their
+# published H0 = 73.9 +/- 3.0 km/s/Mpc.
+print()
+print("=" * 70)
+print("VALIDATION: weighted fit on the Pesce et al. (2020) maser sample")
+print("=" * 70)
+mcp = pd.read_csv("mcp_pesce2020.csv")
+D_mcp = mcp.D_Mpc.values
+eD_mcp = 0.5 * (mcp.D_err_plus.values + mcp.D_err_minus.values)
+v_mcp = mcp.v_cmb_kms.values
+H0_mcp, se_mcp_scaled, _, chi2dof_mcp = irls_origin(D_mcp, v_mcp, eD_mcp / D_mcp, sigma_pec=250.0)
+sig_mcp = np.sqrt((H0_mcp * eD_mcp) ** 2 + 250.0 ** 2)
+se_mcp = 1.0 / np.sqrt(np.sum(D_mcp ** 2 / sig_mcp ** 2))
+print(f"  This method:           H0 = {H0_mcp:5.2f} +/- {se_mcp:4.2f} km/s/Mpc "
+      f"(n={len(mcp)}, chi2/dof={chi2dof_mcp:.2f}; error from input uncertainties)")
+print("  Pesce et al. (2020):   H0 = 73.90 +/- 3.00 km/s/Mpc")
+print(f"  Difference: {H0_mcp - 73.9:+.2f} km/s/Mpc = "
+      f"{(H0_mcp - 73.9) / np.hypot(se_mcp, 3.0):+.2f} sigma (errors combined in quadrature)")
 
 # ---------- M31 check ----------
 print()
@@ -413,7 +556,7 @@ se_o_cmb_uw = results["v_CMB"]["se_o"]
 
 rows = [
     ("Planck 2020 (CMB, $\\Lambda$CDM)", 67.4, 0.5, "#7f7f7f"),
-    ("Freedman 2021 (TRGB)", 69.8, np.hypot(0.6, 1.6), "#7f7f7f"),
+    ("Freedman et al. 2025 (CCHP, TRGB)", 70.39, np.sqrt(1.22**2 + 1.33**2 + 0.70**2), "#7f7f7f"),
     ("Riess et al. 2022 (SH0ES, Cepheids)", 73.3, 1.0, "#7f7f7f"),
     ("This work -- $v_{\\rm helio}$, unweighted", H0o_helio_uw, se_o_helio_uw, "#1f4e8c"),
     ("This work -- $v_{\\rm helio}$, weighted", H0o_helio_w, se_o_helio_w, "#1a9850"),

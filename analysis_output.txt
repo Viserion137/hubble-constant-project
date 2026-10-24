@@ -1,4 +1,4 @@
-analysis.py:19: DeprecationWarning: `scipy.odr` is deprecated as of version 1.17.0 and will be removed in SciPy 1.19.0. Please use `https://pypi.org/project/odrpack/` instead.
+analysis.py:26: DeprecationWarning: `scipy.odr` is deprecated as of version 1.17.0 and will be removed in SciPy 1.19.0. Please use `https://pypi.org/project/odrpack/` instead.
   from scipy.odr import ODR, Model, RealData
 ======================================================================
 PART 1: Hubble (1929) data
@@ -16,21 +16,22 @@ Excluding Local Group (18), n=18
 PART 2: Modern NED sample (n=39)
 ======================================================================
 
-Maser galaxies (n=5):
-   object  r_Mpc  v_helio_kms
- NGC 4258   7.58          461
- UGC 3789  49.60         3185
- NGC 6264 144.00        10145
-NGC 5765b 126.00         8257
- NGC 6323 107.00         7695
+Maser galaxies (n=6):
+      object  r_Mpc  v_helio_kms
+    NGC 4258   7.58          461
+    UGC 3789  51.50         3185
+    NGC 6264 132.10        10145
+   NGC 5765b 112.20         8257
+    NGC 6323 109.40         7695
+CGCG 074-064  87.60         6915
 
 v_helio
-  Free intercept:      H0 = 69.80 +/- 2.32 km/s/Mpc  (b=+129.9, R2=0.9607)
-  Forced thru origin:  H0 = 71.73 +/- 1.86 km/s/Mpc  (R2=0.9587)
+  Free intercept:      H0 = 73.18 +/- 2.08 km/s/Mpc  (b=+60.9, R2=0.9709)
+  Forced thru origin:  H0 = 74.13 +/- 1.62 km/s/Mpc  (R2=0.9705)
 
 v_CMB
-  Free intercept:      H0 = 68.46 +/- 2.84 km/s/Mpc  (b=+319.0, R2=0.9399)
-  Forced thru origin:  H0 = 73.20 +/- 2.44 km/s/Mpc  (R2=0.9278)
+  Free intercept:      H0 = 71.77 +/- 2.71 km/s/Mpc  (b=+251.3, R2=0.9498)
+  Forced thru origin:  H0 = 75.70 +/- 2.24 km/s/Mpc  (R2=0.9425)
 
 ======================================================================
 NEARBY SUBSAMPLE: r <= 25 Mpc (n=32) vs. full sample (n=39)
@@ -46,87 +47,147 @@ v_CMB, r <= 25 Mpc
 
 Frame shift, H0(v_CMB) - H0(v_helio):
   r <= 25 Mpc (n=32): free intercept  -7.05, forced thru origin +10.42 km/s/Mpc
-  Full sample   (n=39): free intercept  -1.34, forced thru origin  +1.47 km/s/Mpc
+  Full sample   (n=39): free intercept  -1.41, forced thru origin  +1.57 km/s/Mpc
 
 ======================================================================
-SENSITIVITY CHECK: influence of the 5 maser-distance galaxies
+SENSITIVITY CHECK: influence of the 6 maser-distance galaxies
 ======================================================================
 
 v_helio (origin-forced fit):
-  Full sample (n=39):        H0 = 71.73 +/- 1.86 km/s/Mpc
-  Excluding 5 masers (n=34): H0 = 81.19 +/- 3.62 km/s/Mpc
-  Shift from removing masers: -9.45 km/s/Mpc
+  Full sample (n=39):        H0 = 74.13 +/- 1.62 km/s/Mpc
+  Excluding 6 masers (n=33): H0 = 74.34 +/- 4.17 km/s/Mpc
+  Shift from removing masers: -0.21 km/s/Mpc
   Top-5 single-galaxy leverage (H0_all - H0_excl_i):
-    NGC 5765b       (   Maser, r= 126.0 Mpc): -1.98 km/s/Mpc
-    CGCG 074-064    (      FP, r=  74.4 Mpc): +1.95 km/s/Mpc
-    NGC 6264        (   Maser, r= 144.0 Mpc): -0.59 km/s/Mpc
-    UGC 3789        (   Maser, r=  49.6 Mpc): -0.29 km/s/Mpc
-    NGC 4535        (Cepheids, r=  14.8 Mpc): +0.20 km/s/Mpc
-  Bootstrap 68% CI (percentile): [69.54, 74.68] km/s/Mpc (median 71.67)
+    NGC 6264        (   Maser, r= 132.1 Mpc): +1.05 km/s/Mpc
+    NGC 6323        (   Maser, r= 109.4 Mpc): -0.91 km/s/Mpc
+    CGCG 074-064    (   Maser, r=  87.6 Mpc): +0.68 km/s/Mpc
+    UGC 3789        (   Maser, r=  51.5 Mpc): -0.55 km/s/Mpc
+    NGC 4535        (Cepheids, r=  14.8 Mpc): +0.21 km/s/Mpc
+  Bootstrap 68% CI (percentile): [72.49, 75.57] km/s/Mpc (median 74.13)
+  Standard error on H0: analytic 1.62, jackknife 1.72, bootstrap SD 1.65 km/s/Mpc
 
 v_CMB (origin-forced fit):
-  Full sample (n=39):        H0 = 73.20 +/- 2.44 km/s/Mpc
-  Excluding 5 masers (n=34): H0 = 85.79 +/- 4.82 km/s/Mpc
-  Shift from removing masers: -12.59 km/s/Mpc
+  Full sample (n=39):        H0 = 75.70 +/- 2.24 km/s/Mpc
+  Excluding 6 masers (n=33): H0 = 79.59 +/- 5.89 km/s/Mpc
+  Shift from removing masers: -3.89 km/s/Mpc
   Top-5 single-galaxy leverage (H0_all - H0_excl_i):
-    CGCG 074-064    (      FP, r=  74.4 Mpc): +2.14 km/s/Mpc
-    NGC 5765b       (   Maser, r= 126.0 Mpc): -1.92 km/s/Mpc
-    NGC 6264        (   Maser, r= 144.0 Mpc): -1.27 km/s/Mpc
-    NGC 7619        (     SBF, r=  53.0 Mpc): -0.41 km/s/Mpc
-    NGC 6323        (   Maser, r= 107.0 Mpc): -0.34 km/s/Mpc
-  Bootstrap 68% CI (percentile): [70.83, 76.81] km/s/Mpc (median 73.13)
+    NGC 6323        (   Maser, r= 109.4 Mpc): -1.36 km/s/Mpc
+    CGCG 074-064    (   Maser, r=  87.6 Mpc): +0.88 km/s/Mpc
+    UGC 3789        (   Maser, r=  51.5 Mpc): -0.57 km/s/Mpc
+    NGC 7619        (     SBF, r=  53.0 Mpc): -0.56 km/s/Mpc
+    NGC 6264        (   Maser, r= 132.1 Mpc): +0.43 km/s/Mpc
+  Bootstrap 68% CI (percentile): [73.91, 77.65] km/s/Mpc (median 75.75)
+  Standard error on H0: analytic 2.24, jackknife 1.97, bootstrap SD 2.13 km/s/Mpc
 
 ======================================================================
 WEIGHTED FIT (inverse-variance, representative fractional errors by method)
 ======================================================================
-Adopted fractional distance errors: {'Cepheids': 0.07, 'SBF': 0.1, 'SNIa': 0.08, 'SNII (optical)': 0.15, 'Maser': 0.05, 'FP': 0.2}
+Adopted fractional distance errors: {'Cepheids': 0.07, 'SBF': 0.1, 'SNIa': 0.08, 'SNII (optical)': 0.15, 'Maser': 0.05}
 
 --- Naive version: weight by distance error alone (sigma_pec = 0) ---
-  v_helio: H0 = 81.91 +/- 5.04 km/s/Mpc (chi2/dof=28.5) -- pulled toward the low-r, peculiar-velocity-dominated regime
-  v_CMB: H0 = 95.83 +/- 8.80 km/s/Mpc (chi2/dof=63.3) -- pulled toward the low-r, peculiar-velocity-dominated regime
+  v_helio: H0 = 82.25 +/- 4.89 km/s/Mpc (chi2/dof=27.9) -- pulled toward the low-r, peculiar-velocity-dominated regime
+  v_CMB: H0 = 95.66 +/- 8.56 km/s/Mpc (chi2/dof=63.2) -- pulled toward the low-r, peculiar-velocity-dominated regime
 
 --- Combined version: distance error + peculiar-velocity floor sigma_pec ---
 (sigma_pec is a distance-independent scatter floor from galaxy peculiar motions;
  adopted as a representative order-of-magnitude, not a per-galaxy measurement)
 
   sigma_pec = 150 km/s:
-    v_helio: forced-origin  H0 = 72.77 +/- 3.27 km/s/Mpc (R2=0.9584, chi2/dof=4.96)
-    v_helio: free-intercept H0 = 67.12 +/- 4.19 km/s/Mpc (b=+161.5, R2=0.9590, chi2/dof=4.82)
-    v_CMB: forced-origin  H0 = 78.86 +/- 4.74 km/s/Mpc (R2=0.9176, chi2/dof=9.44)
-    v_CMB: free-intercept H0 = 65.20 +/- 5.32 km/s/Mpc (b=+371.1, R2=0.9377, chi2/dof=8.09)
+    v_helio: forced-origin  H0 = 74.84 +/- 3.10 km/s/Mpc (R2=0.9703, chi2/dof=4.84)
+    v_helio: free-intercept H0 = 71.03 +/- 4.08 km/s/Mpc (b=+115.7, R2=0.9700, chi2/dof=4.86)
+    v_CMB: forced-origin  H0 = 80.62 +/- 4.47 km/s/Mpc (R2=0.9352, chi2/dof=9.11)
+    v_CMB: free-intercept H0 = 69.53 +/- 5.21 km/s/Mpc (b=+321.4, R2=0.9489, chi2/dof=8.17)
 
   sigma_pec = 200 km/s:
-    v_helio: forced-origin  H0 = 71.92 +/- 2.90 km/s/Mpc (R2=0.9587, chi2/dof=3.15)
-    v_helio: free-intercept H0 = 67.36 +/- 3.63 km/s/Mpc (b=+154.8, R2=0.9592, chi2/dof=3.03)
-    v_CMB: forced-origin  H0 = 76.53 +/- 4.18 km/s/Mpc (R2=0.9243, chi2/dof=6.08)
-    v_CMB: free-intercept H0 = 65.46 +/- 4.60 km/s/Mpc (b=+361.7, R2=0.9379, chi2/dof=5.03)
+    v_helio: forced-origin  H0 = 74.40 +/- 2.76 km/s/Mpc (R2=0.9704, chi2/dof=3.08)
+    v_helio: free-intercept H0 = 71.49 +/- 3.57 km/s/Mpc (b=+103.8, R2=0.9704, chi2/dof=3.09)
+    v_CMB: forced-origin  H0 = 78.89 +/- 3.93 km/s/Mpc (R2=0.9394, chi2/dof=5.85)
+    v_CMB: free-intercept H0 = 69.98 +/- 4.55 km/s/Mpc (b=+307.3, R2=0.9492, chi2/dof=5.16)
 
   sigma_pec = 300 km/s:
-    v_helio: forced-origin  H0 = 71.15 +/- 2.45 km/s/Mpc (R2=0.9586, chi2/dof=1.58)
-    v_helio: free-intercept H0 = 67.76 +/- 3.00 km/s/Mpc (b=+146.0, R2=0.9596, chi2/dof=1.51)
-    v_CMB: forced-origin  H0 = 74.24 +/- 3.48 km/s/Mpc (R2=0.9275, chi2/dof=3.06)
-    v_CMB: free-intercept H0 = 65.96 +/- 3.79 km/s/Mpc (b=+348.0, R2=0.9385, chi2/dof=2.49)
+    v_helio: forced-origin  H0 = 74.11 +/- 2.33 km/s/Mpc (R2=0.9705, chi2/dof=1.54)
+    v_helio: free-intercept H0 = 72.11 +/- 2.98 km/s/Mpc (b=+88.5, R2=0.9707, chi2/dof=1.54)
+    v_CMB: forced-origin  H0 = 77.30 +/- 3.29 km/s/Mpc (R2=0.9417, chi2/dof=2.94)
+    v_CMB: free-intercept H0 = 70.62 +/- 3.81 km/s/Mpc (b=+288.1, R2=0.9496, chi2/dof=2.58)
 
 Adopted sigma_pec = 200 km/s, results used in the report:
-  v_helio: weighted H0 = 71.92 +/- 2.90  (unweighted was 71.73 +/- 1.86)
-  v_CMB: weighted H0 = 76.53 +/- 4.18  (unweighted was 73.20 +/- 2.44)
+  v_helio: weighted H0 = 74.40 +/- 2.76  (unweighted was 74.13 +/- 1.62)
+  v_CMB: weighted H0 = 78.89 +/- 3.93  (unweighted was 75.70 +/- 2.24)
 
 ======================================================================
 ODR CHECK: accounting for errors on r AND v simultaneously
 ======================================================================
-(sigma_r = f_method * r; sigma_v = sqrt((H0*f_method*r)^2 + sigma_pec^2), sigma_pec=200 km/s)
-  v_helio: ODR H0 = 73.74 +/- 3.39 km/s/Mpc  (weighted OLS was 71.92 +/- 2.90)
-  v_CMB: ODR H0 = 80.99 +/- 5.01 km/s/Mpc  (weighted OLS was 76.53 +/- 4.18)
+(sigma_r = f_method * r; sigma_v = sqrt(sigma_pec^2 + sigma_meas^2), sigma_pec=200 km/s, sigma_meas=5 km/s)
+(the distance error enters only through sigma_r: ODR already propagates it
+ onto v, so it must not be repeated in sigma_v)
+  v_helio: ODR H0 = 75.12 +/- 2.80 km/s/Mpc  (weighted OLS was 74.40 +/- 2.76)
+  v_helio: (with the v1.1.0 double-counted sigma_v it would be 75.66)
+  v_CMB: ODR H0 = 80.45 +/- 4.13 km/s/Mpc  (weighted OLS was 78.89 +/- 3.93)
+  v_CMB: (with the v1.1.0 double-counted sigma_v it would be 82.43)
 
 Residuals from the unweighted v_helio origin-forced fit, grouped by method:
                     mean       std  count
 method                                   
-Cepheids        0.281525  0.521440     21
-FP              0.295655       NaN      1
-Maser          -0.071774  0.063638      5
-SBF            -0.006105  0.312554     10
-SNII (optical) -0.264812       NaN      1
-SNIa            0.080485       NaN      1
+Cepheids        0.240134  0.504598     21
+Maser          -0.050465  0.102566      6
+SBF            -0.038207  0.302459     10
+SNII (optical) -0.288557       NaN      1
+SNIa            0.045587       NaN      1
+
+======================================================================
+METHOD DEPENDENCE vs. SAMPLING NOISE (paired bootstrap)
+======================================================================
+4000 valid resamples out of 4000
+
+  estimator                    H0 SE analytic  SD boot   68% CI (bootstrap)
+  v_helio OLS origin        74.13        1.62     1.64   [72.52, 75.62]
+  v_helio OLS free          73.18        2.08     2.33   [70.94, 74.91]
+  v_helio weighted origin   74.40        2.76     2.42   [72.28, 76.88]
+  v_helio weighted free     71.49        3.57     2.60   [68.97, 73.62]
+  v_helio ODR               75.12        2.80     2.56   [72.99, 77.77]
+  v_CMB OLS origin          75.70        2.24     2.12   [73.97, 77.67]
+  v_CMB OLS free            71.77        2.71     3.07   [69.01, 73.85]
+  v_CMB weighted origin     78.89        3.93     3.68   [76.14, 82.75]
+  v_CMB weighted free       69.98        4.55     3.41   [66.64, 72.67]
+  v_CMB ODR                 80.45        4.13     4.33   [77.35, 84.93]
+
+  Shift of each estimator from the reference (v_helio OLS origin),
+  compared with the bootstrap SD of that same difference:
+  estimator                  shift SD(shift) shift/SD
+  v_helio OLS free           -0.95      1.70     -0.6
+  v_helio weighted origin    +0.27      1.41     +0.2
+  v_helio weighted free      -2.64      1.76     -1.5
+  v_helio ODR                +0.99      1.59     +0.6
+  v_CMB OLS origin           +1.57      1.13     +1.4
+  v_CMB OLS free             -2.36      2.41     -1.0
+  v_CMB weighted origin      +4.76      2.86     +1.7
+  v_CMB weighted free        -4.15      2.61     -1.6
+  v_CMB ODR                  +6.32      3.60     +1.8
+  Largest |shift|/SD: 1.8
+
+  Spread of the ten estimates: SD 3.25, range 69.98-80.45 km/s/Mpc
+  v_helio only (5 estimators): SD 1.40, range 71.49-75.12 km/s/Mpc
+  v_CMB only (5 estimators): SD 4.48, range 69.98-80.45 km/s/Mpc
+
+  Distance from literature values, (H0 - H0_lit) / sqrt(SD_boot^2 + sigma_lit^2):
+  estimator                 Planck 2020    CCHP 2025   SH0ES 2022
+  v_helio OLS origin              +3.9s        +1.5s        +0.4s
+  v_helio OLS free                +2.4s        +0.9s        -0.0s
+  v_helio weighted origin         +2.8s        +1.3s        +0.4s
+  v_helio weighted free           +1.5s        +0.3s        -0.6s
+  v_helio ODR                     +3.0s        +1.5s        +0.7s
+  v_CMB OLS origin                +3.8s        +1.8s        +1.0s
+  v_CMB OLS free                  +1.4s        +0.4s        -0.5s
+  v_CMB weighted origin           +3.1s        +2.0s        +1.5s
+  v_CMB weighted free             +0.7s        -0.1s        -0.9s
+  v_CMB ODR                       +3.0s        +2.1s        +1.6s
+
+======================================================================
+VALIDATION: weighted fit on the Pesce et al. (2020) maser sample
+======================================================================
+  This method:           H0 = 75.44 +/- 3.09 km/s/Mpc (n=6, chi2/dof=0.60; error from input uncertainties)
+  Pesce et al. (2020):   H0 = 73.90 +/- 3.00 km/s/Mpc
+  Difference: +1.54 km/s/Mpc = +0.36 sigma (errors combined in quadrature)
 
 ======================================================================
 M31 (Andromeda) modern velocity check
