@@ -86,11 +86,14 @@ def bootstrap_origin(r, v, n_boot=20000):
 # typical ranges summarized in Freedman & Madore (2010, ARA&A 48, 673). These
 # are method-level, representative values (not individual NED-quoted errors
 # for each galaxy), used here only to set relative weights between methods.
+# The single TRGB distance (NGC 4594, McQuinn et al. 2016) is given 5%,
+# slightly larger than its own quoted uncertainty (about 3.5%).
 METHOD_FRAC_ERROR = {
     "Cepheids": 0.07,
     "SBF": 0.10,
     "SNIa": 0.08,
     "SNII (optical)": 0.15,
+    "TRGB": 0.05,
     "Maser": 0.05,
 }
 
@@ -354,11 +357,20 @@ for label, v in [("v_helio", v_helio), ("v_CMB", v_cmb)]:
     print(f"  {label}: (with the v1.1.0 double-counted sigma_v it would be {H0_odr_old:5.2f})")
 
 # Residuals by method (checking for a method-dependent systematic offset)
-print("\nResiduals from the unweighted v_helio origin-forced fit, grouped by method:")
+print("\nResiduals from the unweighted v_helio origin-forced fit, grouped by method")
+print("(fractional residual (v - H0 r) / (H0 r); std = scatter of the group,")
+print(" sem = standard error of the mean = std / sqrt(count), z = mean / sem):")
 H0o_ref, _, _ = fit_origin(r_m, v_helio)
 dfm["resid_helio"] = v_helio - H0o_ref * r_m
 dfm["frac_resid_helio"] = dfm["resid_helio"] / (H0o_ref * r_m)
-print(dfm.groupby("method")["frac_resid_helio"].agg(["mean", "std", "count"]).to_string())
+resid_by_method = dfm.groupby("method")["frac_resid_helio"].agg(["mean", "std", "count"])
+resid_by_method["sem"] = resid_by_method["std"] / np.sqrt(resid_by_method["count"])
+resid_by_method["z"] = resid_by_method["mean"] / resid_by_method["sem"]
+print(resid_by_method.to_string())
+ceph = dfm[dfm.method == "Cepheids"].sort_values("frac_resid_helio", ascending=False)
+print("  Largest Cepheid residuals:")
+for _, row in ceph.head(3).iterrows():
+    print(f"    {row.object:10s} r={row.r_Mpc:6.2f} Mpc: {row.frac_resid_helio:+.2f}")
 
 # ---------- Method dependence vs. sampling noise (paired bootstrap) ----------
 # The ten estimators above (2 frames x {OLS origin, OLS free, weighted origin,
@@ -528,7 +540,7 @@ for label, v, fname, title in [
     H0o, se_o, _ = fit_origin(r_m, v)
     fig, ax = plt.subplots(figsize=(6.4, 4.8))
     method_colors = {"Cepheids": "#1f4e8c", "SBF": "#c0392b", "Maser": "#1a9850",
-                      "SNIa": "#8e44ad", "SNII (optical)": "#e67e22", "FP": "#7f7f7f"}
+                      "SNIa": "#8e44ad", "SNII (optical)": "#e67e22", "TRGB": "#17a2b8"}
     for m, c in method_colors.items():
         sel = (dfm.method == m).values
         if sel.any():
