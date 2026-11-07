@@ -1,29 +1,27 @@
 # Estimating the Hubble Constant: From Historical to Modern Data
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22260280.svg)](https://doi.org/10.5281/zenodo.22260280)
+[![Run analysis](https://github.com/Viserion137/hubble-constant-project/actions/workflows/test.yml/badge.svg)](https://github.com/Viserion137/hubble-constant-project/actions/workflows/test.yml)
 
 Independent research project by Alessandro Buttazzo (2026).
 
-**Refitting Hubble's original 1929 data gives H₀ ≈ 424 km/s/Mpc. The same fit on 39 modern galaxies gives H₀ = 72.0–75.7 km/s/Mpc** (statistical error 1.6–2.7), at the upper end of the range spanned by Planck (67.4) and SH0ES (73.3).
-The fitting method is identical in both cases: the sixfold gap comes from the 1929 distance scale, not from the statistics.
-Weighted and errors-in-variables (ODR) fits move the modern estimate within 70.4–80.4 km/s/Mpc, but a paired bootstrap shows these shifts are comparable to each estimator's own sampling noise (at most 1.8σ), so with 39 galaxies the choice of method cannot be separated from statistical noise.
+**Refitting Hubble's original 1929 data with his own model (expansion plus the motion of the Sun) reproduces his published K = 465 km/s/Mpc. The same kind of fit on 39 modern galaxies gives H₀ = 72.5 ± 1.5 km/s/Mpc** (heliocentric velocities, fit through the origin; 70.0–74.1 for the four unweighted fits), between the CCHP (70.4) and SH0ES (73.0) values and 3.5σ above Planck (67.4).
+The fitting method is the same in both cases: the sixfold gap comes from the 1929 distance scale, not from the statistics.
+Weighted and errors-in-variables (ODR) fits move the modern estimate within 69.6–74.9 km/s/Mpc, but a paired bootstrap shows these shifts are comparable to each estimator's own sampling noise (at most 1.6σ).
 
-![Comparison of this project's H0 estimates with Planck, TRGB and SH0ES](figures/H0_comparison.png)
+![Comparison of this project's H0 estimates with Planck, CCHP, SH0ES and H0DN](figures/H0_comparison.png)
 
-*Origin-forced H₀ from the modern sample (blue: unweighted; green: weighted) compared with Planck 2020, Freedman et al. 2025 (CCHP, TRGB) and Riess et al. 2022 (SH0ES). Hubble's 1929 value, ~424 km/s/Mpc, is far off this scale.*
+*Origin-forced H₀ from the modern sample (blue: unweighted; green: weighted) compared with Planck 2020, Freedman et al. 2025 (CCHP, TRGB), Riess et al. 2022 (SH0ES) and the H0DN Local Distance Network (2026). Hubble's 1929 value is far off this scale.*
 
-### What changed in v1.2.1
+### What changed in v1.3.0
 
-- **Distances.** NGC 4594 (Sombrero) was listed as a Cepheid distance of 6.22 Mpc, a value that is actually a globular-cluster luminosity function estimate; it now uses the TRGB distance of 9.55 Mpc (McQuinn et al. 2016). NGC 300 (1.49 → 1.88 Mpc, Gieren et al. 2005) and NGC 2403, NGC 3351, NGC 3627 (→ 3.13, 9.33, 9.38 Mpc, HST Key Project, Freedman et al. 2001) were corrected after checking against the literature. The unweighted full-sample estimates change by at most 0.22 km/s/Mpc.
-- **Cepheid residuals.** The mean residual is now quoted with its standard error: +0.16 ± 0.10 (1.6σ), previously +0.24 ± 0.11 (2.2σ) and described as "marginal".
-- **Report.** The history of Hubble's overestimate is corrected: Baade's Cepheid recalibration accounts for only about a factor of 2; the rest came from the later revision of the brightest-star distances (HII regions mistaken for stars: Humason, Mayall & Sandage 1956, H₀ ≈ 180; Sandage 1958, 50–100). Hubble used Cepheids only for the nearest objects. Minor wording fixes.
+- **Distances and redshifts on the same footing.** The maser distances are angular-diameter distances, the others luminosity distances; the linear Hubble law holds exactly for the comoving distance. All distances are now converted to comoving distance and all velocities to H₀·D_C (flat ΛCDM, Ω_m = 0.315, as in Pesce et al. 2020). This lowers the maser v/r by 1.4–4.1% and the origin-forced estimates by about 2.1 km/s/Mpc, and brings the validation on the published maser result from +0.36σ to −0.18σ.
+- **Hubble's own model.** Part 1 now also fits v = K r + X cos α cos δ + Y sin α cos δ + Z sin δ, as Hubble did, and recovers his K = 465 km/s/Mpc, his solar motion and his 150 km/s mean residual.
+- **Peculiar-velocity floor from the data.** The weighted fits use σ_pec = 368 km/s (heliocentric) and 528 km/s (CMB frame), the values for which χ²/dof = 1 (maximum likelihood gives 372 and 529), instead of a fixed 200 km/s.
+- **Maser velocities** are now the systemic velocities of Pesce et al. (2020), the same ones used in the validation.
+- Also: M31 and M81 in the Galactocentric frame, Monte Carlo check of the estimators, SH0ES baseline value (73.04 ± 1.04) and the H0DN 2026 result, ODR without the deprecated `scipy.odr`, unit tests, and a CI check that the output matches `analysis_output.txt`.
 
-### What changed in v1.2.0
-
-- **ODR fix.** The velocity error passed to the ODR check also contained the distance term `H0·f·r`, so the distance error was counted twice (ODR already propagates `sigma_r` onto the velocity axis). `sigma_v` now contains only the peculiar-velocity floor and a 5 km/s measurement error.
-- **Maser distances.** The five Megamaser Cosmology Project galaxies now use the distances of Pesce et al. (2020, ApJL 891, L1), which supersede the earlier individual determinations; CGCG 074-064 uses its geometric maser distance (87.6 Mpc) instead of the Fundamental Plane one. This raises the origin-forced estimates by 2.4–2.5 km/s/Mpc relative to v1.1.0, and changes the maser sensitivity result: removing the six masers no longer shifts H₀ significantly (the earlier ~10 km/s/Mpc shift came largely from CGCG 074-064's Fundamental Plane distance), but more than doubles its uncertainty.
-- **New checks.** Jackknife and bootstrap standard errors printed next to the analytic ones; a paired bootstrap comparing the ten estimators with their own sampling noise; distances from Planck, CCHP and SH0ES in units of σ; a validation of the weighted method on the Pesce et al. (2020) maser sample (75.4 ± 3.1 vs the published 73.9 ± 3.0).
-- **Report.** Introduction updated with the CCHP 2025 TRGB result and a neutral statement of the tension; discussion and conclusion rewritten for the new numbers.
+Earlier changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
 
 Full report: [`hubble_report.pdf`](hubble_report.pdf)
 
@@ -32,40 +30,38 @@ Full report: [`hubble_report.pdf`](hubble_report.pdf)
 This repository reproduces Edwin Hubble's original 1929 measurement of the
 Hubble constant $H_0$ and repeats the same statistical analysis on a modern
 sample of 39 galaxies drawn from the NASA/IPAC Extragalactic Database (NED),
-comparing the two results with current literature values (Planck, SH0ES,
-TRGB). The full writeup, with methodology, discussion, and references, is
-in [`hubble_report.pdf`](hubble_report.pdf) (source: [`hubble_report.tex`](hubble_report.tex)).
+comparing the two results with current literature values (Planck, CCHP,
+SH0ES, H0DN). The full writeup, with methodology, discussion, and references,
+is in [`hubble_report.pdf`](hubble_report.pdf) (source: [`hubble_report.tex`](hubble_report.tex)).
 
 ## Repository contents
 
 | File | Description |
 |---|---|
 | `hubble_report.pdf` / `.tex` | Full report (LaTeX source + compiled PDF) |
-| `analysis.py` | Python script that performs all fits, resampling checks, and regenerates the figures |
-| `hubble1929.csv` | Hubble's original 1929 dataset (24 objects: distance, velocity) |
-| `ned_modern.csv` | Modern sample (39 galaxies): distance, method, heliocentric and CMB-frame velocity (from NED; maser distances from Reid et al. 2019 and Pesce et al. 2020; five distances corrected from the literature, see the report) |
-| `mcp_pesce2020.csv` | Distances, uncertainties and CMB-frame velocities of the six maser galaxies from Table 1 of Pesce et al. (2020), used for the validation check |
+| `analysis.py` | Runs every fit, check and figure of the report |
+| `hubble_fits.py` | The fitting and conversion functions used by `analysis.py` |
+| `tests/` | Unit tests of those functions on synthetic data (`pytest`) |
+| `hubble1929.csv` | Hubble's 1929 dataset (24 objects: distance, velocity), with J2000 coordinates |
+| `ned_modern.csv` | Modern sample (39 galaxies): distance, method, heliocentric and CMB-frame velocity, velocity source |
+| `mcp_pesce2020.csv` | Distances, uncertainties and CMB-frame velocities of the six maser galaxies from Table 1 of Pesce et al. (2020) |
 | `figures/` | All figures used in the report, as generated by `analysis.py` |
-| `analysis_output.txt` | Console output from the latest run of `analysis.py`, kept for reference |
+| `analysis_output.txt` | Console output of `analysis.py`; the CI checks that a fresh run reproduces it exactly |
 | `requirements.txt` | Exact package versions used to produce the report |
 | `CITATION.cff` | Citation metadata (used by GitHub's "Cite this repository" button) |
 
 ## Method summary
 
-For each of the two datasets, the script fits Hubble's Law $v = H_0 r$ two
-ways (free intercept and forced through the origin), reporting standard
-errors and $R^2$. For the modern sample it goes further: the same fits on
-the nearby galaxies alone ($r \le 25$ Mpc), to show how the choice of
-velocity frame matters when the sample does not reach into the Hubble flow;
-an inverse-variance weighted fit (combining representative per-method
-distance errors with a peculiar-velocity floor); a jackknife/bootstrap
-sensitivity analysis on the six galaxies with geometric maser distances;
-an orthogonal distance regression (ODR) check that allows for
-measurement error on distance as well as velocity; a paired bootstrap that
-compares the spread between the ten estimators with their own sampling
-noise; and a validation of the weighted method against the published
-Megamaser Cosmology Project result. See the report for the full discussion
-and the reasoning behind each choice.
+For Hubble's data the script fits $v = H_0 r$ (free intercept and through the
+origin) and Hubble's own model with the solar motion. For the modern sample it
+first converts every distance to comoving distance and every velocity to
+$H_0 D_C$, then runs: the same two fits in both velocity frames; the nearby
+galaxies alone ($r \le 25$ Mpc); jackknife and bootstrap checks of the six
+maser galaxies; weighted fits (per-method distance errors plus a
+peculiar-velocity floor estimated from the data); an orthogonal distance
+regression; a Monte Carlo check of the estimators; a paired bootstrap of the
+ten estimators; and a validation against the published Megamaser Cosmology
+Project result. See the report for the reasoning behind each choice.
 
 ## Reproducing the analysis
 
@@ -75,40 +71,33 @@ install on Python 3.10 or older.
 
 ```bash
 pip install -r requirements.txt
-python analysis.py
+python analysis.py            # about 20 seconds
+pip install pytest && pytest  # optional: unit tests
 ```
 
 A virtual environment is recommended (`python3 -m venv .venv && source .venv/bin/activate`
 before the install).
 
-This prints all fit results (matching the numbers quoted in the report; a
-copy is in `analysis_output.txt`) and regenerates the four PNG figures in
-`figures/`.
-
-**Note on `scipy.odr`.** The ODR check uses `scipy.odr`, which SciPy
-deprecated in version 1.17 and will remove in 1.19. With the pinned
-`scipy==1.17.1` it works and only prints a `DeprecationWarning` (the first
-two lines of `analysis_output.txt`). With SciPy 1.19 or later, `analysis.py`
-will fail at import, so install the pinned versions from `requirements.txt`.
-SciPy recommends the standalone [`odrpack`](https://pypi.org/project/odrpack/)
-package as the replacement.
+This prints all fit results (matching the numbers quoted in the report and
+`analysis_output.txt`) and regenerates the four PNG figures in `figures/`.
 
 ## Data sources
 
 - Hubble's 1929 dataset is transcribed from Hubble, E. (1929), *A relation
   between distance and radial velocity among extra-galactic nebulae*, PNAS,
-  15(3), 168-173.
+  15(3), 168-173. Coordinates: OpenNGC catalogue for the NGC objects,
+  SIMBAD for the Magellanic Clouds.
 - The modern sample is compiled from the NASA/IPAC Extragalactic Database
   (NED), operated by JPL/Caltech under contract with NASA
   (https://ned.ipac.caltech.edu). See Appendix A of the report for query
   details and how to independently retrieve the same entries.
-- The maser distances are from Reid, Pesce & Riess (2019), ApJL 886, L27
-  (NGC 4258) and Pesce et al. (2020), *The Megamaser Cosmology Project. XIII.
-  Combined Hubble constant constraints*, ApJL 891, L1 (the five MCP galaxies).
+- The maser distances and velocities are from Reid, Pesce & Riess (2019),
+  ApJL 886, L27 (NGC 4258) and Pesce et al. (2020), *The Megamaser Cosmology
+  Project. XIII. Combined Hubble constant constraints*, ApJL 891, L1.
 
 ## License
 
-- Code (`analysis.py`) is released under the MIT License — see
+- Code (`analysis.py`, `hubble_fits.py`, `tests/`) is released under the MIT License — see
   [`LICENSE`](LICENSE).
 - The report text and figures are not covered by the MIT license; please
   contact the author before reusing them.
@@ -118,5 +107,5 @@ package as the replacement.
 If you use this code or data, please cite this repository via its Zenodo
 DOI: [10.5281/zenodo.22260280](https://doi.org/10.5281/zenodo.22260280), in
 addition to the original data sources listed above. This DOI covers all
-archived versions and always resolves to the latest one; each release also
-has its own version-specific DOI, listed on the Zenodo page.
+archived versions; each release also has its own version-specific DOI,
+listed on the Zenodo page.
